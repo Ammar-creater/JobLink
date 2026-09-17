@@ -39,6 +39,8 @@ JobLink is a full-stack MERN web application built by **Noreen** and **Eman** as
 
 ##  Folder Structure
 
+```
+
 JobLink/
 ├── client/ # React frontend
 │ ├── public/
@@ -53,6 +55,8 @@ JobLink/
 │ └── middleware/
 ├── .gitignore
 └── README.md
+
+```
 
 
 ##  Getting Started
@@ -73,3 +77,14 @@ npm run dev
 cd ../client
 npm install
 npm start
+
+##  Environment Variables
+
+**Never commit `.env` files.** Use `server/.env.example` as a template.
+
+Required backend variables:
+- `PORT` — backend port
+- `MONGO_URI` — MongoDB connection string
+- `JWT_SECRET` — secret for signing JWT tokens
+- `JWT_EXPIRES_IN` — token expiry duration
+- `CLIENT_URL` — frontend URL for CORS
