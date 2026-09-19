@@ -1,0 +1,603 @@
+{
+  "info": {
+    "_postman_id": "f201392f-201d-41dd-87c8-0244323ba031",
+    "name": "JobLink API Tests",
+    "description": "Complete API test collection for JobLink Module 3 — Job Posting CRUD",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58096344",
+    "_collection_link": "https://go.postman.co/collection/58096344-f201392f-201d-41dd-87c8-0244323ba031?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. GET all approved jobs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has success=true', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.eql(true);",
+              "});",
+              "",
+              "pm.test('Response has data array', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs"
+          ]
+        },
+        "description": "Should return 200 with a list of approved jobs"
+      },
+      "response": []
+    },
+    {
+      "name": "2. GET pending jobs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('All returned jobs are pending', function () {",
+              "  const json = pm.response.json();",
+              "  json.data.forEach(function (job) {",
+              "    pm.expect(job.status).to.eql('pending');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs?status=pending",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "pending"
+            }
+          ]
+        },
+        "description": "Should return only jobs with status=pending"
+      },
+      "response": []
+    },
+    {
+      "name": "3. GET jobs filtered by keyword",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has data', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs?keyword=React&status=approved",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs"
+          ],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "React"
+            },
+            {
+              "key": "status",
+              "value": "approved"
+            }
+          ]
+        },
+        "description": "Should return jobs whose title or description match 'React'"
+      },
+      "response": []
+    },
+    {
+      "name": "4. GET jobs filtered by type=internship",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('All jobs are internships', function () {",
+              "  const json = pm.response.json();",
+              "  json.data.forEach(function (job) {",
+              "    pm.expect(job.type).to.eql('internship');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs?type=internship&status=approved",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "internship"
+            },
+            {
+              "key": "status",
+              "value": "approved"
+            }
+          ]
+        },
+        "description": "Should return only internship-type jobs"
+      },
+      "response": []
+    },
+    {
+      "name": "5. GET jobs filtered by location",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Locations contain Lahore', function () {",
+              "  const json = pm.response.json();",
+              "  json.data.forEach(function (job) {",
+              "    pm.expect(job.location.toLowerCase()).to.include('lahore');",
+              "  });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs?location=Lahore&status=approved",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs"
+          ],
+          "query": [
+            {
+              "key": "location",
+              "value": "Lahore"
+            },
+            {
+              "key": "status",
+              "value": "approved"
+            }
+          ]
+        },
+        "description": "Should return jobs where location contains 'Lahore'"
+      },
+      "response": []
+    },
+    {
+      "name": "6. POST create a job (valid)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response has job data', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.eql(true);",
+              "  pm.expect(json.data).to.have.property('_id');",
+              "});",
+              "",
+              "pm.test('Save job ID to variable', function () {",
+              "  const json = pm.response.json();",
+              "  pm.collectionVariables.set('jobId', json.data._id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{mockUserId}}"
+          },
+          {
+            "key": "x-user-role",
+            "value": "employer"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman Test Job\",\n  \"description\": \"Created via Postman API test.\",\n  \"type\": \"job\",\n  \"category\": \"{{categoryId}}\",\n  \"location\": \"Karachi, Pakistan\",\n  \"salary\": \"45000 PKR/month\",\n  \"requirements\": [\"Postman\", \"API Testing\"],\n  \"deadline\": \"2026-12-31\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs"
+          ]
+        },
+        "description": "Creates a new job posting. Should return 201 with the created job."
+      },
+      "response": []
+    },
+    {
+      "name": "7. POST create job (missing fields — 400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "  pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Response has error message', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.have.property('message');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{mockUserId}}"
+          },
+          {
+            "key": "x-user-role",
+            "value": "employer"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Incomplete Job\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs"
+          ]
+        },
+        "description": "Missing required fields. Should return 400 with error message."
+      },
+      "response": []
+    },
+    {
+      "name": "8. POST create job (bad category — 404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 404', function () {",
+              "  pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Error mentions Category', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.message.toLowerCase()).to.include('category');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{mockUserId}}"
+          },
+          {
+            "key": "x-user-role",
+            "value": "employer"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Test Job\",\n  \"description\": \"Testing invalid category\",\n  \"type\": \"job\",\n  \"category\": \"000000000000000000000000\",\n  \"location\": \"Karachi\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs"
+          ]
+        },
+        "description": "Category ID does not exist. Should return 404 'Category not found'."
+      },
+      "response": []
+    },
+    {
+      "name": "9. GET single job by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has correct job ID', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data._id).to.eql(pm.collectionVariables.get('jobId'));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs/{{jobId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs",
+            "{{jobId}}"
+          ]
+        },
+        "description": "Get the job created in test 6. Should return 200 with full job."
+      },
+      "response": []
+    },
+    {
+      "name": "10. GET job with invalid ID (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 404', function () {",
+              "  pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs/000000000000000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs",
+            "000000000000000000000000"
+          ]
+        },
+        "description": "Non-existent job ID. Should return 404."
+      },
+      "response": []
+    },
+    {
+      "name": "11. PUT update job",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Salary was updated', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data.salary).to.include('55000');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{mockUserId}}"
+          },
+          {
+            "key": "x-user-role",
+            "value": "employer"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"salary\": \"55000 PKR/month\",\n  \"description\": \"Updated via Postman API test.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs/{{jobId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs",
+            "{{jobId}}"
+          ]
+        },
+        "description": "Update the job created in test 6. Should return 200."
+      },
+      "response": []
+    },
+    {
+      "name": "12. DELETE job",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response confirms deletion', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.eql(true);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "x-user-id",
+            "value": "{{mockUserId}}"
+          },
+          {
+            "key": "x-user-role",
+            "value": "employer"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs/{{jobId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "jobs",
+            "{{jobId}}"
+          ]
+        },
+        "description": "Delete the job created in test 6. Should return 200."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "mockUserId",
+      "value": "650000000000000000000001"
+    },
+    {
+      "key": "categoryId",
+      "value": "6aacef3f4e5718d1ddfc58ab"
+    },
+    {
+      "key": "jobId",
+      "value": ""
+    }
+  ]
+}
