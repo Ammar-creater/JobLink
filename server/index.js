@@ -8,7 +8,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const authRoutes = require('./routes/authRoutes');
-
+const profileRoutes = require('./routes/profileRoutes');
 const app = express();
 
 // ── Middleware ─────────────────────────────
@@ -31,6 +31,7 @@ app.get('/', (req, res) => {
 
 // ── Routes ─────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/users', profileRoutes);
 
 // ── Centralized Error Handler (placeholder) ─
 // Full version will be added by Noreen in feature/auth
