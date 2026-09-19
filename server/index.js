@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 const app = express();
 
 // ── Middleware ─────────────────────────────
@@ -32,7 +33,7 @@ app.get('/', (req, res) => {
 // ── Routes ─────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/users', profileRoutes);
-
+app.use('/api/employer', dashboardRoutes);
 // ── Centralized Error Handler (placeholder) ─
 // Full version will be added by Noreen in feature/auth
 app.use((err, req, res, next) => {
