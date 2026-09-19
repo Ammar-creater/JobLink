@@ -7,6 +7,8 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+const jobRoutes = require('./routes/jobs');
+
 const app = express();
 
 // ── Middleware ─────────────────────────────
@@ -27,13 +29,31 @@ app.get('/', (req, res) => {
   });
 });
 
-// ── Centralized Error Handler (placeholder) ─
-// Full version will be added by Noreen in feature/auth
+// ── Routes ─────────────────────────────────
+app.use('/api/jobs', jobRoutes);
+
+// ── 404 Handler ────────────────────────────
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+// ── Centralized Error Handler ──────────────
+// Reads statusCode from res.statusCode if set, else err.status, else 500
 app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
-  res.status(err.status || 500).json({
+  console.error('❌ Error:', err.message);
+
+  const statusCode =
+    err.status ||
+    err.statusCode ||
+    (res.statusCode && res.statusCode >= 400 ? res.statusCode : 500);
+
+  res.status(statusCode).json({
+    success: false,
     message: err.message || 'Internal Server Error',
-    // NEVER expose stack traces in the response
+    // Never expose stack traces in response
   });
 });
 
