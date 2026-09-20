@@ -43,12 +43,14 @@ api.interceptors.request.use((config) => {
 const jobsAPI = {
   /**
    * Get all jobs (with optional filters)
-   * @param {Object} filters - { keyword, category, location, type, salary, status }
+   * @param {Object} filters - { keyword, category, location, type, salary, page }
    */
   getAll: async (filters = {}) => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) params.append(key, value);
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value);
+      }
     });
     const query = params.toString();
     const res = await api.get(`/jobs${query ? `?${query}` : ''}`);
@@ -97,19 +99,12 @@ const jobsAPI = {
 };
 
 // ─────────────────────────────────────────
-// Categories API (helper for dropdowns)
+// Categories API (loads from /api/categories)
 // ─────────────────────────────────────────
 export const categoriesAPI = {
   getAll: async () => {
-    return [
-      { _id: '6aacef3f4e5718d1ddfc58ab', name: 'Software Engineering' },
-      { _id: '6aacef3f4e5718d1ddfc58ac', name: 'Design' },
-      { _id: '6aacef3f4e5718d1ddfc58ad', name: 'Marketing' },
-      { _id: '6aacef3f4e5718d1ddfc58ae', name: 'Data Science' },
-      { _id: '6aacef3f4e5718d1ddfc58af', name: 'Finance' },
-      { _id: '6aacef3f4e5718d1ddfc58b0', name: 'Customer Support' },
-      { _id: '6aacef3f4e5718d1ddfc58b1', name: 'Sales' },
-    ];
+    const res = await api.get('/categories');
+    return res.data.data;
   },
 };
 
