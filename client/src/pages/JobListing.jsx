@@ -8,6 +8,16 @@ const JobListing = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 9,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
+
   const [filters, setFilters] = useState({
     keyword: '',
     category: '',
@@ -22,12 +32,16 @@ const JobListing = () => {
     // eslint-disable-next-line
   }, []);
 
-  const fetchJobs = async (customFilters = filters) => {
+  const fetchJobs = async (customFilters = filters, pageNum = 1) => {
     setLoading(true);
     setError('');
     try {
-      const res = await jobsAPI.getAll(customFilters);
+      const res = await jobsAPI.getAll({ ...customFilters, page: pageNum });
       setJobs(res.data || []);
+      if (res.pagination) {
+        setPagination(res.pagination);
+      }
+      setPage(pageNum);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load jobs');
     } finally {
@@ -41,13 +55,19 @@ const JobListing = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchJobs(filters);
+    fetchJobs(filters, 1); // reset to page 1 on new search
   };
 
   const handleReset = () => {
     const cleared = { keyword: '', category: '', location: '', type: '', salary: '' };
     setFilters(cleared);
-    fetchJobs(cleared);
+    fetchJobs(cleared, 1);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
+    fetchJobs(filters, newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Helper — format date
@@ -67,7 +87,6 @@ const JobListing = () => {
           HERO SECTION
       ───────────────────────────── */}
       <section className="relative bg-gradient-to-br from-indigo-600 via-indigo-500 to-blue-500 text-white overflow-hidden">
-        {/* Decorative circles */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-32 -left-24 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
 
@@ -85,7 +104,7 @@ const JobListing = () => {
             {/* Trust stats */}
             <div className="flex flex-wrap gap-8 mt-8">
               <div>
-                <div className="text-3xl font-bold">{jobs.length || '100'}+</div>
+                <div className="text-3xl font-bold">{pagination.total || 0}+</div>
                 <div className="text-sm text-indigo-200 uppercase tracking-wider mt-1">
                   Live Openings
                 </div>
@@ -133,6 +152,7 @@ const JobListing = () => {
                 />
               </svg>
               <input
+                id="keyword"
                 type="text"
                 name="keyword"
                 value={filters.keyword}
@@ -144,6 +164,7 @@ const JobListing = () => {
 
             {/* Category */}
             <select
+              id="category"
               name="category"
               value={filters.category}
               onChange={handleFilterChange}
@@ -179,6 +200,7 @@ const JobListing = () => {
                 />
               </svg>
               <input
+                id="location"
                 type="text"
                 name="location"
                 value={filters.location}
@@ -190,6 +212,7 @@ const JobListing = () => {
 
             {/* Type */}
             <select
+              id="type"
               name="type"
               value={filters.type}
               onChange={handleFilterChange}
@@ -217,6 +240,7 @@ const JobListing = () => {
                 />
               </svg>
               <input
+                id="salary"
                 type="text"
                 name="salary"
                 value={filters.salary}
@@ -265,8 +289,15 @@ const JobListing = () => {
       <section className="max-w-7xl mx-auto px-6 py-12">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-800">
-            {loading ? 'Loading...' : `${jobs.length} ${jobs.length === 1 ? 'Job' : 'Jobs'} Found`}
+            {loading
+              ? 'Loading...'
+              : `${pagination.total} ${pagination.total === 1 ? 'Job' : 'Jobs'} Found`}
           </h2>
+          {!loading && pagination.totalPages > 1 && (
+            <p className="text-sm text-slate-500">
+              Page {pagination.page} of {pagination.totalPages}
+            </p>
+          )}
         </div>
 
         {/* Loading skeletons */}
@@ -441,6 +472,63 @@ const JobListing = () => {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+
+        {/* ─── Pagination controls ─── */}
+        {!loading && !error && pagination.totalPages > 1 && (
+          <div className="mt-10 flex items-center justify-center gap-2">
+            <button
+              onClick={() => handlePageChange(page - 1)}
+              disabled={!pagination.hasPrevPage}
+              className="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Prev
+            </button>
+
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
+              (pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`w-10 h-10 rounded-lg text-sm font-semibold transition-colors ${
+                    pageNum === page
+                      ? 'bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-sm'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              )
+            )}
+
+            <button
+              onClick={() => handlePageChange(page + 1)}
+              disabled={!pagination.hasNextPage}
+              className="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
         )}
       </section>

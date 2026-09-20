@@ -21,7 +21,6 @@ const EditJobForm = () => {
     salary: '',
     requirements: '',
     deadline: '',
-    status: 'pending',
   });
 
   useEffect(() => {
@@ -50,7 +49,6 @@ const EditJobForm = () => {
         deadline: job.deadline
           ? new Date(job.deadline).toISOString().split('T')[0]
           : '',
-        status: job.status || 'pending',
       });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load job');
@@ -69,8 +67,14 @@ const EditJobForm = () => {
     setSuccess('');
     setSaving(true);
 
+    // Only send fields the employer is allowed to edit — NO status field
     const payload = {
-      ...formData,
+      title: formData.title,
+      description: formData.description,
+      type: formData.type,
+      category: formData.category,
+      location: formData.location,
+      salary: formData.salary,
       requirements: formData.requirements
         ? formData.requirements.split(',').map((r) => r.trim()).filter(Boolean)
         : [],
@@ -151,7 +155,7 @@ const EditJobForm = () => {
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 space-y-8"
         >
-          {/* Section 1 */}
+          {/* Section 1 — Basic Info */}
           <div>
             <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
               <span className="w-1 h-5 bg-gradient-to-b from-indigo-600 to-blue-500 rounded-full"></span>
@@ -160,10 +164,14 @@ const EditJobForm = () => {
 
             <div className="space-y-5 mt-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Job Title <span className="text-rose-500">*</span>
                 </label>
                 <input
+                  id="title"
                   type="text"
                   name="title"
                   value={formData.title}
@@ -174,10 +182,14 @@ const EditJobForm = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Description <span className="text-rose-500">*</span>
                 </label>
                 <textarea
+                  id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
@@ -189,10 +201,14 @@ const EditJobForm = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label
+                    htmlFor="type"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
+                  >
                     Type <span className="text-rose-500">*</span>
                   </label>
                   <select
+                    id="type"
                     name="type"
                     value={formData.type}
                     onChange={handleChange}
@@ -204,10 +220,14 @@ const EditJobForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label
+                    htmlFor="category"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
+                  >
                     Category <span className="text-rose-500">*</span>
                   </label>
                   <select
+                    id="category"
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
@@ -226,7 +246,7 @@ const EditJobForm = () => {
             </div>
           </div>
 
-          {/* Section 2 */}
+          {/* Section 2 — Location & Compensation */}
           <div className="pt-6 border-t border-slate-100">
             <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
               <span className="w-1 h-5 bg-gradient-to-b from-indigo-600 to-blue-500 rounded-full"></span>
@@ -235,10 +255,14 @@ const EditJobForm = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="location"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Location <span className="text-rose-500">*</span>
                 </label>
                 <input
+                  id="location"
                   type="text"
                   name="location"
                   value={formData.location}
@@ -249,10 +273,14 @@ const EditJobForm = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="salary"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Salary
                 </label>
                 <input
+                  id="salary"
                   type="text"
                   name="salary"
                   value={formData.salary}
@@ -263,19 +291,23 @@ const EditJobForm = () => {
             </div>
           </div>
 
-          {/* Section 3 */}
+          {/* Section 3 — Requirements & Deadline (NO status) */}
           <div className="pt-6 border-t border-slate-100">
             <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
               <span className="w-1 h-5 bg-gradient-to-b from-indigo-600 to-blue-500 rounded-full"></span>
-              Requirements, Deadline & Status
+              Requirements & Deadline
             </h2>
 
             <div className="space-y-5 mt-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="requirements"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Requirements
                 </label>
                 <input
+                  id="requirements"
                   type="text"
                   name="requirements"
                   value={formData.requirements}
@@ -285,36 +317,21 @@ const EditJobForm = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Application Deadline
-                  </label>
-                  <input
-                    type="date"
-                    name="deadline"
-                    value={formData.deadline}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Status
-                  </label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-                  >
-                    <option value="pending">Pending (Admin Review)</option>
-                    <option value="approved">Approved (Live)</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                </div>
+              <div>
+                <label
+                  htmlFor="deadline"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
+                  Application Deadline
+                </label>
+                <input
+                  id="deadline"
+                  type="date"
+                  name="deadline"
+                  value={formData.deadline}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                />
               </div>
             </div>
           </div>

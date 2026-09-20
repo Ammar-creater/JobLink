@@ -124,10 +124,14 @@ const PostJobForm = () => {
 
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Job Title <span className="text-rose-500">*</span>
                 </label>
                 <input
+                  id="title"
                   type="text"
                   name="title"
                   value={formData.title}
@@ -139,10 +143,14 @@ const PostJobForm = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Description <span className="text-rose-500">*</span>
                 </label>
                 <textarea
+                  id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
@@ -155,10 +163,14 @@ const PostJobForm = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label
+                    htmlFor="type"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
+                  >
                     Type <span className="text-rose-500">*</span>
                   </label>
                   <select
+                    id="type"
                     name="type"
                     value={formData.type}
                     onChange={handleChange}
@@ -170,10 +182,14 @@ const PostJobForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label
+                    htmlFor="category"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
+                  >
                     Category <span className="text-rose-500">*</span>
                   </label>
                   <select
+                    id="category"
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
@@ -204,10 +220,14 @@ const PostJobForm = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="location"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Location <span className="text-rose-500">*</span>
                 </label>
                 <input
+                  id="location"
                   type="text"
                   name="location"
                   value={formData.location}
@@ -219,10 +239,14 @@ const PostJobForm = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="salary"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Salary
                 </label>
                 <input
+                  id="salary"
                   type="text"
                   name="salary"
                   value={formData.salary}
@@ -246,10 +270,14 @@ const PostJobForm = () => {
 
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="requirements"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Requirements
                 </label>
                 <input
+                  id="requirements"
                   type="text"
                   name="requirements"
                   value={formData.requirements}
@@ -263,10 +291,14 @@ const PostJobForm = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="deadline"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Application Deadline
                 </label>
                 <input
+                  id="deadline"
                   type="date"
                   name="deadline"
                   value={formData.deadline}

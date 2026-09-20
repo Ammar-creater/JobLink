@@ -10,7 +10,6 @@ const asyncHandler = (fn) => (req, res, next) =>
 
 // ─────────────────────────────────────────
 // Helper — throw an error with a status code
-// (so the error middleware knows what to return)
 // ─────────────────────────────────────────
 const throwError = (status, message) => {
   const err = new Error(message);
@@ -22,6 +21,12 @@ const throwError = (status, message) => {
 // Helper — validate a MongoDB ObjectId
 // ─────────────────────────────────────────
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+// ─────────────────────────────────────────
+// Helper — escape special regex characters
+// Prevents ReDoS and 500 errors on inputs like "("
+// ─────────────────────────────────────────
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // ─────────────────────────────────────────
 // @desc    Create a new job posting
@@ -59,8 +64,13 @@ const createJob = asyncHandler(async (req, res) => {
     return throwError(404, 'Category not found');
   }
 
+  // Reject past deadlines
+  if (deadline && new Date(deadline) < new Date()) {
+    return throwError(400, 'Deadline cannot be in the past');
+  }
+
   const job = await JobPosting.create({
-    employerId: req.user._id, // set by auth middleware
+    employerId: req.user._id,
     title,
     description,
     type,
@@ -69,7 +79,7 @@ const createJob = asyncHandler(async (req, res) => {
     salary,
     requirements,
     deadline,
-    status: 'pending', // default — admin must approve
+    status: 'pending', // always pending — admin must approve
   });
 
   res.status(201).json({
@@ -80,23 +90,24 @@ const createJob = asyncHandler(async (req, res) => {
 });
 
 // ─────────────────────────────────────────
-// @desc    Get all job postings (with search & filters)
+// @desc    Get all approved job postings (with search, filters & pagination)
 // @route   GET /api/jobs
 // @access  Public
 // ─────────────────────────────────────────
 const getJobs = asyncHandler(async (req, res) => {
-  const { keyword, category, location, type, salary, status } = req.query;
+  const { keyword, category, location, type, salary, page, limit } = req.query;
 
   const filter = {};
 
-  // Only show approved jobs by default (unless admin queries)
-  filter.status = status || 'approved';
+  // Always only return approved jobs — ignore any ?status= param
+  filter.status = 'approved';
 
-  // Keyword search across title and description
+  // Keyword search across title and description (regex-escaped)
   if (keyword) {
+    const safe = escapeRegex(keyword);
     filter.$or = [
-      { title: { $regex: keyword, $options: 'i' } },
-      { description: { $regex: keyword, $options: 'i' } },
+      { title: { $regex: safe, $options: 'i' } },
+      { description: { $regex: safe, $options: 'i' } },
     ];
   }
 
@@ -106,24 +117,41 @@ const getJobs = asyncHandler(async (req, res) => {
     }
     filter.category = category;
   }
-  if (location) filter.location = { $regex: location, $options: 'i' };
+  if (location) filter.location = { $regex: escapeRegex(location), $options: 'i' };
   if (type) filter.type = type;
-  if (salary) filter.salary = { $regex: salary, $options: 'i' };
+  if (salary) filter.salary = { $regex: escapeRegex(salary), $options: 'i' };
+
+  // ─── Pagination ───────────────────────────
+  // Defaults: page=1, limit=9. Max limit=50 to prevent abuse.
+  const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+  const limitNum = Math.min(Math.max(parseInt(limit, 10) || 9, 1), 50);
+
+  const total = await JobPosting.countDocuments(filter);
+  const totalPages = Math.ceil(total / limitNum) || 1;
 
   const jobs = await JobPosting.find(filter)
     .populate('category', 'name')
     // .populate('employerId', 'name email')   // TODO: enable after feature/auth merges
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .skip((pageNum - 1) * limitNum)
+    .limit(limitNum);
 
   res.status(200).json({
     success: true,
-    count: jobs.length,
     data: jobs,
+    pagination: {
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages,
+      hasNextPage: pageNum < totalPages,
+      hasPrevPage: pageNum > 1,
+    },
   });
 });
 
 // ─────────────────────────────────────────
-// @desc    Get single job posting by ID
+// @desc    Get single approved job posting by ID
 // @route   GET /api/jobs/:id
 // @access  Public
 // ─────────────────────────────────────────
@@ -133,10 +161,11 @@ const getJobById = asyncHandler(async (req, res) => {
     return throwError(400, 'Invalid job ID format');
   }
 
-  const job = await JobPosting.findById(req.params.id).populate(
-    'category',
-    'name'
-  );
+  // Only return approved jobs — reject non-approved
+  const job = await JobPosting.findOne({
+    _id: req.params.id,
+    status: 'approved',
+  }).populate('category', 'name');
   // .populate('employerId', 'name email');   // TODO: enable after feature/auth merges
 
   if (!job) {
@@ -170,7 +199,24 @@ const updateJob = asyncHandler(async (req, res) => {
     return throwError(403, 'Not authorized to update this job posting');
   }
 
-  // Fields that can be updated
+  // Validate new category if provided
+  if (req.body.category !== undefined) {
+    if (!isValidId(req.body.category)) {
+      return throwError(400, 'Invalid category ID format');
+    }
+    const categoryExists = await Category.findById(req.body.category);
+    if (!categoryExists) {
+      return throwError(404, 'Category not found');
+    }
+  }
+
+  // Reject past deadlines if provided
+  if (req.body.deadline && new Date(req.body.deadline) < new Date()) {
+    return throwError(400, 'Deadline cannot be in the past');
+  }
+
+  // Fields that can be updated — NOTE: 'status' is NOT here
+  // Employers cannot approve/close their own jobs
   const updatableFields = [
     'title',
     'description',
@@ -180,7 +226,6 @@ const updateJob = asyncHandler(async (req, res) => {
     'salary',
     'requirements',
     'deadline',
-    'status',
   ];
 
   updatableFields.forEach((field) => {
@@ -238,7 +283,6 @@ const getMyJobs = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    count: jobs.length,
     data: jobs,
   });
 });

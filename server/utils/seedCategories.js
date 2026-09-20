@@ -1,6 +1,9 @@
 /**
- * Seed Script — Insert default categories into MongoDB
- * Run once: node utils/seedCategories.js
+ * Seed Script — Upsert default categories into MongoDB
+ * Run: node utils/seedCategories.js
+ *
+ * Safe to run multiple times — uses upsert so existing categories
+ * are updated (matched by name) instead of deleted and recreated.
  */
 
 require('dotenv').config();
@@ -22,16 +25,30 @@ const seed = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('✅ Connected to MongoDB');
 
-    // Remove existing categories (fresh start)
-    await Category.deleteMany({});
-    console.log('🗑  Cleared existing categories');
+    let inserted = 0;
+    let updated = 0;
+    let unchanged = 0;
 
-    // Insert new categories
-    const created = await Category.insertMany(categories);
-    console.log(`✅ Inserted ${created.length} categories:`);
-    created.forEach((c) => console.log(`   - ${c._id}  ${c.name}`));
+    for (const cat of categories) {
+      const result = await Category.updateOne(
+        { name: cat.name },
+        { $set: { description: cat.description } },
+        { upsert: true }
+      );
 
-    console.log('\n👉 Copy the category _id values above and paste them into client/src/services/jobs.js\n');
+      if (result.upsertedCount > 0) {
+        inserted++;
+        console.log(`  ➕ Inserted: ${cat.name}`);
+      } else if (result.modifiedCount > 0) {
+        updated++;
+        console.log(`  🔄 Updated:  ${cat.name}`);
+      } else {
+        unchanged++;
+        console.log(`  ⏭  Unchanged: ${cat.name}`);
+      }
+    }
+
+    console.log(`\n✅ Done — ${inserted} inserted, ${updated} updated, ${unchanged} unchanged`);
 
     await mongoose.disconnect();
     console.log('✅ Disconnected from MongoDB');
