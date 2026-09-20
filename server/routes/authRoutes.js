@@ -9,7 +9,11 @@ router.post("/logout", logout);
 
 // Test route — only accessible with a valid JWT token
 router.get("/test-protected", protect, (req, res) => {
-  res.json({ message: "You are authenticated!", user: req.user });
+  res.status(200).json({
+    success: true,
+    data: { user: req.user },
+    message: "You are authenticated!",
+  });
 });
 
 module.exports = router;
