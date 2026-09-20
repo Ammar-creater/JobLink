@@ -37,7 +37,8 @@ app.get('/', (req, res) => {
 // ── Routes ─────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/users', profileRoutes);
-
+// Serve uploaded files (resumes, photos) publicly
+app.use('/uploads', express.static('uploads'));
 // ── Centralized Error Handler (placeholder) ─
 // Full version will be added by Noreen in feature/auth
 app.use((err, req, res, next) => {
