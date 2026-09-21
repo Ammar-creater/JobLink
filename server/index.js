@@ -4,7 +4,6 @@
  */
 require('dotenv').config();
 const express = require('express');
-
 const cors = require('cors');
 const mongoose = require('mongoose');
 
@@ -16,6 +15,7 @@ if (!process.env.JWT_SECRET) {
 
 // ── Route mounts — all modules ─────────────
 const authRoutes = require('./routes/authRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 const jobRoutes = require('./routes/jobs');
 const categoryRoutes = require('./routes/categories');
 
@@ -41,11 +41,13 @@ app.get('/', (req, res) => {
 
 // ── Routes ─────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/users', profileRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/categories', categoryRoutes);
+// Serve uploaded files (resumes, photos) publicly
+app.use('/uploads', express.static('uploads'));
 
-// ── Centralized Error Handler (placeholder) ─
-// Full version will be added by Noreen in feature/auth
+// ── Centralized Error Handler ───────────────
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
   res.status(err.status || 500).json({
