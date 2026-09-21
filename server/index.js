@@ -13,8 +13,11 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
+// ── Route mounts — all modules ─────────────
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const jobRoutes = require('./routes/jobs');
+const categoryRoutes = require('./routes/categories');
 
 const app = express();
 
@@ -39,6 +42,8 @@ app.get('/', (req, res) => {
 // ── Routes ─────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/users', profileRoutes);
+app.use('/api/jobs', jobRoutes);
+app.use('/api/categories', categoryRoutes);
 // Serve uploaded files (resumes, photos) publicly
 app.use('/uploads', express.static('uploads'));
 
@@ -47,7 +52,7 @@ app.use((err, req, res, next) => {
   console.error('Error:', err.message);
   res.status(err.status || 500).json({
     message: err.message || 'Internal Server Error',
-    // NEVER expose stack traces in the response
+    // NEVER expose stack traces in response
   });
 });
 

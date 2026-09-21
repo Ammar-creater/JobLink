@@ -3,7 +3,7 @@ const User = require("../models/User");
 // GET /api/users/me
 async function getProfile(req, res) {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user._id).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -30,7 +30,7 @@ async function updateProfile(req, res) {
     }
     if (education !== undefined) updates.education = education;
 
-    const user = await User.findByIdAndUpdate(req.user.id, updates, {
+    const user = await User.findByIdAndUpdate(req.user._id, updates, {
       new: true,
       runValidators: true,
     }).select("-password");
@@ -55,7 +55,7 @@ async function uploadResume(req, res) {
     const resumeUrl = `/${req.file.path.replace(/\\/g, "/")}`;
 
     const user = await User.findByIdAndUpdate(
-      req.user.id,
+      req.user._id,
       { resumeUrl },
       { new: true }
     ).select("-password");
@@ -76,7 +76,7 @@ async function uploadPhoto(req, res) {
     const profilePhotoUrl = `/${req.file.path.replace(/\\/g, "/")}`;
 
     const user = await User.findByIdAndUpdate(
-      req.user.id,
+      req.user._id,
       { profilePhotoUrl },
       { new: true }
     ).select("-password");
