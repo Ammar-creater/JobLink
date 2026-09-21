@@ -10,21 +10,26 @@ const {
   getMyJobs,
 } = require('../controllers/jobController');
 
-// TEMPORARY — swap with real auth middleware from Noreen's feature/auth later
-const mockAuth = require('../middleware/mockAuth');
+// Real JWT auth + role-based authorization (from feature/auth — Noreen's Module 1)
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 // ─────────────────────────────────────────
 // Public routes (no auth needed)
 // ─────────────────────────────────────────
 router.get('/', getJobs);            // GET    /api/jobs
-router.get('/:id', getJobById);      // GET    /api/jobs/:id
 
 // ─────────────────────────────────────────
-// Protected routes (require login)
+// Protected routes (must be BEFORE /:id)
 // ─────────────────────────────────────────
-router.get('/my', mockAuth, getMyJobs);        // GET    /api/jobs/my
-router.post('/', mockAuth, createJob);         // POST   /api/jobs
-router.put('/:id', mockAuth, updateJob);       // PUT    /api/jobs/:id
-router.delete('/:id', mockAuth, deleteJob);    // DELETE /api/jobs/:id
+router.get('/my', protect, authorize('employer'), getMyJobs);        // GET    /api/jobs/my
+router.post('/', protect, authorize('employer'), createJob);         // POST   /api/jobs
+router.put('/:id', protect, authorize('employer'), updateJob);       // PUT    /api/jobs/:id
+router.delete('/:id', protect, authorize('employer'), deleteJob);    // DELETE /api/jobs/:id
+
+// ─────────────────────────────────────────
+// Public single job route — MUST BE LAST
+// (otherwise /:id would catch /my)
+// ─────────────────────────────────────────
+router.get('/:id', getJobById);      // GET    /api/jobs/:id
 
 module.exports = router;

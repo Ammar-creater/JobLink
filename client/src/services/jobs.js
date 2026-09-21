@@ -17,23 +17,14 @@ const api = axios.create({
 });
 
 // ─────────────────────────────────────────
-// TEMPORARY: Mock auth headers
-// We attach fake auth headers so protected routes work
-// BEFORE Noreen's real JWT auth is merged.
-// ⚠️ REMOVE THESE once feature/auth is done.
+// Real JWT auth — attach Bearer token from localStorage
+// (Replaces the temporary mock auth headers)
 // ─────────────────────────────────────────
-const getMockAuthHeaders = () => {
-  const userId = localStorage.getItem('mockUserId') || '650000000000000000000001';
-  const userRole = localStorage.getItem('mockUserRole') || 'employer';
-  return {
-    'x-user-id': userId,
-    'x-user-role': userRole,
-  };
-};
-
-// Request interceptor — attach mock auth headers to all requests
 api.interceptors.request.use((config) => {
-  Object.assign(config.headers, getMockAuthHeaders());
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 

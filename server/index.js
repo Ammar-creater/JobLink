@@ -4,9 +4,18 @@
  */
 require('dotenv').config();
 const express = require('express');
+
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+// Fail fast if critical secrets are missing
+if (!process.env.JWT_SECRET) {
+  console.error('❌ JWT_SECRET is missing in .env — server will not start');
+  process.exit(1);
+}
+
+// ── Route mounts — all modules ─────────────
+const authRoutes = require('./routes/authRoutes');
 const jobRoutes = require('./routes/jobs');
 const categoryRoutes = require('./routes/categories');
 
@@ -31,6 +40,7 @@ app.get('/', (req, res) => {
 });
 
 // ── Routes ─────────────────────────────────
+app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/categories', categoryRoutes);
 

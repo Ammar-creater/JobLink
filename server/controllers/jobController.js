@@ -131,7 +131,7 @@ const getJobs = asyncHandler(async (req, res) => {
 
   const jobs = await JobPosting.find(filter)
     .populate('category', 'name')
-    // .populate('employerId', 'name email')   // TODO: enable after feature/auth merges
+    .populate('employerId', 'name email')
     .sort({ createdAt: -1 })
     .skip((pageNum - 1) * limitNum)
     .limit(limitNum);
@@ -165,8 +165,9 @@ const getJobById = asyncHandler(async (req, res) => {
   const job = await JobPosting.findOne({
     _id: req.params.id,
     status: 'approved',
-  }).populate('category', 'name');
-  // .populate('employerId', 'name email');   // TODO: enable after feature/auth merges
+  })
+    .populate('category', 'name')
+    .populate('employerId', 'name email');
 
   if (!job) {
     return throwError(404, 'Job posting not found');
