@@ -4,8 +4,15 @@
  */
 require('dotenv').config();
 const express = require('express');
+
 const cors = require('cors');
 const mongoose = require('mongoose');
+// Fail fast if critical secrets are missing
+if (!process.env.JWT_SECRET) {
+  console.error('❌ JWT_SECRET is missing in .env — server will not start');
+  process.exit(1);
+}
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -26,6 +33,9 @@ app.get('/', (req, res) => {
     env: process.env.NODE_ENV || 'development',
   });
 });
+
+// ── Routes ─────────────────────────────────
+app.use('/api/auth', authRoutes);
 
 // ── Centralized Error Handler (placeholder) ─
 // Full version will be added by Noreen in feature/auth
