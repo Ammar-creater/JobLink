@@ -7,12 +7,17 @@ const express = require('express');
 
 const cors = require('cors');
 const mongoose = require('mongoose');
+
 // Fail fast if critical secrets are missing
 if (!process.env.JWT_SECRET) {
   console.error('❌ JWT_SECRET is missing in .env — server will not start');
   process.exit(1);
 }
+
+// ── Route mounts — all modules ─────────────
 const authRoutes = require('./routes/authRoutes');
+const jobRoutes = require('./routes/jobs');
+const categoryRoutes = require('./routes/categories');
 
 const app = express();
 
@@ -36,6 +41,8 @@ app.get('/', (req, res) => {
 
 // ── Routes ─────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/jobs', jobRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // ── Centralized Error Handler (placeholder) ─
 // Full version will be added by Noreen in feature/auth
@@ -43,7 +50,7 @@ app.use((err, req, res, next) => {
   console.error('Error:', err.message);
   res.status(err.status || 500).json({
     message: err.message || 'Internal Server Error',
-    // NEVER expose stack traces in the response
+    // NEVER expose stack traces in response
   });
 });
 
