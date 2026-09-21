@@ -12,7 +12,6 @@ This document tracks all active modules, pull requests, dependencies, and integr
 | **Module 2: User Profile Management** | [@Noreen73](https://github.com/Noreen73) | `feature/user-profile` | [#2](https://github.com/Ammar-creater/JobLink/pull/2) | Merged (2c10817) | `Module 1 (feature/auth)` |
 | **Module 3: Job Posting CRUD, Search, Filters & UI** | [@emanashrafch1212-hue](https://github.com/emanashrafch1212-hue) | `feature/job-posting` | [#3](https://github.com/Ammar-creater/JobLink/pull/3) | Merged (803545e) | `Module 1 (feature/auth)` |
 | **Module 5: Employer Dashboard & Applications** | [@Noreen73](https://github.com/Noreen73) | `feature/employer-dashboard` | [#4](https://github.com/Ammar-creater/JobLink/pull/4) | Waiting for Noreen: merge main, delete Job.js, use JobPosting, fix req.user.id | `Module 1 (feature/auth)`, `Module 3 (feature/job-posting)` |
-| **Client login/register UI** | [@emanashrafch1212-hue](https://github.com/emanashrafch1212-hue) | `feature/auth-ui` | — | Assigned to Eman (feature/auth-ui) | `Module 1 (feature/auth)` |
 
 ---
 
