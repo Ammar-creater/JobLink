@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
-const Job = require("../models/Job");
+const JobPosting = require("../models/JobPosting");
 const Application = require("../models/Application");
 
 // GET /api/employer/jobs — employer's own postings
 async function getMyJobs(req, res) {
   try {
-    const jobs = await Job.find({ employerId: req.user._id }).sort({ createdAt: -1 });
+    const jobs = await JobPosting.find({ employerId: req.user._id }).sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
       data: { count: jobs.length, jobs },
@@ -24,7 +24,7 @@ async function getJobApplicants(req, res) {
       return res.status(400).json({ success: false, message: "Invalid job id" });
     }
 
-    const job = await Job.findById(jobId);
+    const job = await JobPosting.findById(jobId);
     if (!job) {
       return res.status(404).json({ success: false, message: "Job not found" });
     }
