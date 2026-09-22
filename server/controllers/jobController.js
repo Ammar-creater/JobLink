@@ -29,6 +29,17 @@ const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // ─────────────────────────────────────────
+// Helper — extract first numeric value from a salary string
+// "70000 PKR/month" → 70000
+// "Negotiable" → 0
+// ─────────────────────────────────────────
+const extractSalaryValue = (salaryStr) => {
+  if (!salaryStr) return 0;
+  const match = String(salaryStr).match(/\d+/);
+  return match ? parseInt(match[0], 10) : 0;
+};
+
+// ─────────────────────────────────────────
 // @desc    Create a new job posting
 // @route   POST /api/jobs
 // @access  Private (Employer only)
@@ -77,6 +88,7 @@ const createJob = asyncHandler(async (req, res) => {
     category,
     location,
     salary,
+    salaryValue: extractSalaryValue(salary),
     requirements,
     deadline,
     status: 'pending', // always pending — admin must approve
@@ -90,12 +102,13 @@ const createJob = asyncHandler(async (req, res) => {
 });
 
 // ─────────────────────────────────────────
-// @desc    Get all approved job postings (with search, filters & pagination)
+// @desc    Get all approved job postings (with search, filters, sort & pagination)
 // @route   GET /api/jobs
 // @access  Public
 // ─────────────────────────────────────────
 const getJobs = asyncHandler(async (req, res) => {
-  const { keyword, category, location, type, salary, page, limit } = req.query;
+  const { keyword, category, location, type, salary, page, limit, sort } =
+    req.query;
 
   const filter = {};
 
@@ -121,6 +134,17 @@ const getJobs = asyncHandler(async (req, res) => {
   if (type) filter.type = type;
   if (salary) filter.salary = { $regex: escapeRegex(salary), $options: 'i' };
 
+  // ─── Sort options ─────────────────────────
+  // Default: newest first
+  let sortOption = { createdAt: -1 };
+  if (sort === 'salary_desc') {
+    sortOption = { salaryValue: -1, createdAt: -1 };
+  } else if (sort === 'salary_asc') {
+    sortOption = { salaryValue: 1, createdAt: -1 };
+  } else if (sort === 'oldest') {
+    sortOption = { createdAt: 1 };
+  }
+
   // ─── Pagination ───────────────────────────
   // Defaults: page=1, limit=9. Max limit=50 to prevent abuse.
   const pageNum = Math.max(parseInt(page, 10) || 1, 1);
@@ -132,7 +156,7 @@ const getJobs = asyncHandler(async (req, res) => {
   const jobs = await JobPosting.find(filter)
     .populate('category', 'name')
     .populate('employerId', 'name email')
-    .sort({ createdAt: -1 })
+    .sort(sortOption)
     .skip((pageNum - 1) * limitNum)
     .limit(limitNum);
 
@@ -234,6 +258,11 @@ const updateJob = asyncHandler(async (req, res) => {
       job[field] = req.body[field];
     }
   });
+
+  // Update salaryValue whenever salary is changed
+  if (req.body.salary !== undefined) {
+    job.salaryValue = extractSalaryValue(req.body.salary);
+  }
 
   const updatedJob = await job.save();
 

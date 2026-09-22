@@ -24,6 +24,7 @@ const JobListing = () => {
     location: '',
     type: '',
     salary: '',
+    sort: 'newest',
   });
 
   useEffect(() => {
@@ -59,7 +60,14 @@ const JobListing = () => {
   };
 
   const handleReset = () => {
-    const cleared = { keyword: '', category: '', location: '', type: '', salary: '' };
+    const cleared = {
+      keyword: '',
+      category: '',
+      location: '',
+      type: '',
+      salary: '',
+      sort: 'newest',
+    };
     setFilters(cleared);
     fetchJobs(cleared, 1);
   };
@@ -134,7 +142,7 @@ const JobListing = () => {
           onSubmit={handleSearch}
           className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 animate-slide-up"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3">
             {/* Keyword */}
             <div className="relative lg:col-span-2">
               <svg
@@ -249,6 +257,20 @@ const JobListing = () => {
                 className="w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-sm"
               />
             </div>
+
+            {/* Sort By — NEW */}
+            <select
+              id="sort"
+              name="sort"
+              value={filters.sort}
+              onChange={handleFilterChange}
+              className="px-3 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-sm text-slate-700"
+            >
+              <option value="newest">Sort: Newest</option>
+              <option value="oldest">Sort: Oldest</option>
+              <option value="salary_desc">Sort: Salary ↓</option>
+              <option value="salary_asc">Sort: Salary ↑</option>
+            </select>
           </div>
 
           <div className="flex flex-wrap gap-3 mt-4">
