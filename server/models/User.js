@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+// Sub-schema for education entries (no _id needed)
 const educationSchema = new mongoose.Schema(
   {
     degree: { type: String, trim: true },
