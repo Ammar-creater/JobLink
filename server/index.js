@@ -19,6 +19,8 @@ const profileRoutes = require('./routes/profileRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const jobRoutes = require('./routes/jobs');
 const categoryRoutes = require('./routes/categories');
+const notificationRoutes = require('./routes/notificationRoutes');
+
 const app = express();
 
 // ── Middleware ─────────────────────────────
@@ -45,6 +47,7 @@ app.use('/api/users', profileRoutes);
 app.use('/api/employer', dashboardRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/notifications', notificationRoutes);
 // Serve uploaded files (resumes, photos) publicly
 app.use('/uploads', express.static('uploads'));
 
@@ -53,7 +56,6 @@ app.use((err, req, res, next) => {
   console.error('Error:', err.message);
   res.status(err.status || 500).json({
     message: err.message || 'Internal Server Error',
-    // NEVER expose stack traces in response
   });
 });
 
