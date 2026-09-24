@@ -30,4 +30,5 @@ graph LR
 1. **Module 1 (PR #1):** Core `User` model, JWT authentication, and authorization middleware.
 2. **Module 2 (PR #2):** Profile management and file upload handling.
 3. **Module 3 (PR #3):** Job posting management and public browsing UI (uses `User` model & auth from Module 1).
-4. **Module 5 (PR #4):** Employer dashboard and application reviews (uses `User` from Module 1 and `JobPosting` from Module 3).
+4. **Module 4 (PR #7):** Numeric salary sorting and filters (uses `JobPosting` from Module 3).
+5. **Module 5 (PR #4):** Employer dashboard and application reviews (uses `User` from Module 1 and `JobPosting` from Module 3).
