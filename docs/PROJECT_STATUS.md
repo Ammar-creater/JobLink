@@ -20,9 +20,10 @@ This document tracks all active modules, pull requests, dependencies, and integr
 
 ```mermaid
 graph LR
-    M1[1. Module 1: Auth (#1)] --> M2[2. Module 2: User Profile (#2)]
-    M1 --> M3[3. Module 3: Job Posting (#3)]
-    M2 --> M5[4. Module 5: Employer Dashboard (#4)]
+    M1[Module 1: Auth] --> M2[Module 2: User Profile]
+    M1 --> M3[Module 3: Job Posting]
+    M3 --> M4[Module 4: Salary Sort]
+    M2 --> M5[Module 5: Employer Dashboard]
     M3 --> M5
 ```
 
