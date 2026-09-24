@@ -16,9 +16,9 @@ if (!process.env.JWT_SECRET) {
 // ── Route mounts — all modules ─────────────
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 const jobRoutes = require('./routes/jobs');
 const categoryRoutes = require('./routes/categories');
-
 const app = express();
 
 // ── Middleware ─────────────────────────────
@@ -42,6 +42,7 @@ app.get('/', (req, res) => {
 // ── Routes ─────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/users', profileRoutes);
+app.use('/api/employer', dashboardRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/categories', categoryRoutes);
 // Serve uploaded files (resumes, photos) publicly
