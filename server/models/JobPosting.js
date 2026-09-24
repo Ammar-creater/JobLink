@@ -38,6 +38,11 @@ const jobPostingSchema = new mongoose.Schema(
       trim: true,
       default: 'Negotiable',
     },
+    // NEW — numeric value extracted from salary string, used for proper sorting
+    salaryValue: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected', 'closed'],
