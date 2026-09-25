@@ -19,6 +19,7 @@ const profileRoutes = require('./routes/profileRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const jobRoutes = require('./routes/jobs');
 const categoryRoutes = require('./routes/categories');
+
 const app = express();
 
 // ── Middleware ─────────────────────────────
@@ -45,13 +46,23 @@ app.use('/api/users', profileRoutes);
 app.use('/api/employer', dashboardRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/categories', categoryRoutes);
+
 // Serve uploaded files (resumes, photos) publicly
 app.use('/uploads', express.static('uploads'));
+
+// ── 404 Handler (must be after all routes, before error handler) ──
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
 
 // ── Centralized Error Handler ───────────────
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
   res.status(err.status || 500).json({
+    success: false,
     message: err.message || 'Internal Server Error',
     // NEVER expose stack traces in response
   });
