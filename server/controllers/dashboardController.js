@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const JobPosting = require("../models/JobPosting");
 const Application = require("../models/Application");
+const Notification = require("../models/Notification");
 
 // GET /api/employer/jobs — employer's own postings
 async function getMyJobs(req, res) {
@@ -78,6 +79,20 @@ async function updateApplicationStatus(req, res) {
 
     application.status = status;
     await application.save();
+
+    // Create a notification for the applicant — failure here must not break the status update response
+    try {
+      const jobTitle = application.jobId && application.jobId.title ? application.jobId.title : "applied job";
+
+      await Notification.create({
+        userId: application.userId,
+        message: `Your application for "${jobTitle}" has been ${status}.`,
+        type: "application_status",
+        relatedApplicationId: application._id,
+      });
+    } catch (notificationErr) {
+      console.error("Failed to create application status notification:", notificationErr.message);
+    }
 
     return res.status(200).json({
       success: true,
