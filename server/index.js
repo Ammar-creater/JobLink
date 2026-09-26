@@ -24,9 +24,11 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const app = express();
 
 // ── Middleware ─────────────────────────────
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:5173'];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   })
 );
@@ -51,10 +53,19 @@ app.use('/api/notifications', notificationRoutes);
 // Serve uploaded files (resumes, photos) publicly
 app.use('/uploads', express.static('uploads'));
 
+// ── 404 Handler (must be after all routes, before error handler) ──
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
 // ── Centralized Error Handler ───────────────
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
   res.status(err.status || 500).json({
+    success: false,
     message: err.message || 'Internal Server Error',
   });
 });
