@@ -6,6 +6,7 @@ import PostJobForm from './pages/PostJobForm';
 import EditJobForm from './pages/EditJobForm';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AdminDashboard from './pages/AdminDashboard';
 import authAPI from './services/auth';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/jobs/:id/edit" element={<EditJobForm />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </main>
 
@@ -109,6 +111,21 @@ function Navbar() {
               }
             >
               Post a Job
+            </NavLink>
+          )}
+
+          {isLoggedIn && user && user.role === 'admin' && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'text-purple-600 bg-purple-50'
+                    : 'text-slate-600 hover:text-purple-600 hover:bg-purple-50'
+                }`
+              }
+            >
+              Admin
             </NavLink>
           )}
         </nav>
@@ -217,6 +234,22 @@ function Navbar() {
                 }
               >
                 Post a Job
+              </NavLink>
+            )}
+
+            {isLoggedIn && user && user.role === 'admin' && (
+              <NavLink
+                to="/admin"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+                    isActive
+                      ? 'text-purple-600 bg-purple-50'
+                      : 'text-slate-600 hover:text-purple-600 hover:bg-purple-50'
+                  }`
+                }
+              >
+                Admin
               </NavLink>
             )}
 
