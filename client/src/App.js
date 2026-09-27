@@ -6,6 +6,8 @@ import PostJobForm from './pages/PostJobForm';
 import EditJobForm from './pages/EditJobForm';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import MyApplications from './pages/MyApplications';
+import ManageApplicants from './pages/ManageApplicants';
 import authAPI from './services/auth';
 
 function App() {
@@ -24,6 +26,8 @@ function App() {
             <Route path="/jobs/new" element={<PostJobForm />} />
             <Route path="/jobs/:id" element={<JobDetails />} />
             <Route path="/jobs/:id/edit" element={<EditJobForm />} />
+            <Route path="/jobs/:jobId/applicants" element={<ManageApplicants />} />
+            <Route path="/applications/my" element={<MyApplications />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Routes>
@@ -109,6 +113,21 @@ function Navbar() {
               }
             >
               Post a Job
+            </NavLink>
+          )}
+
+          {isLoggedIn && user && user.role === 'jobseeker' && (
+            <NavLink
+              to="/applications/my"
+              className={({ isActive }) =>
+                `px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'text-indigo-600 bg-indigo-50'
+                    : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50'
+                }`
+              }
+            >
+              My Applications
             </NavLink>
           )}
         </nav>
@@ -217,6 +236,22 @@ function Navbar() {
                 }
               >
                 Post a Job
+              </NavLink>
+            )}
+
+            {isLoggedIn && user && user.role === 'jobseeker' && (
+              <NavLink
+                to="/applications/my"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+                    isActive
+                      ? 'text-indigo-600 bg-indigo-50'
+                      : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50'
+                  }`
+                }
+              >
+                My Applications
               </NavLink>
             )}
 
