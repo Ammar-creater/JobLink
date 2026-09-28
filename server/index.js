@@ -20,7 +20,8 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const jobRoutes = require('./routes/jobs');
 const categoryRoutes = require('./routes/categories');
 const notificationRoutes = require('./routes/notificationRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // ✅ Added from main
 
 const app = express();
 
@@ -51,7 +52,8 @@ app.use('/api/employer', dashboardRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/admin', adminRoutes); // ✅ Added from main
 
 // Serve uploaded files (resumes, photos) publicly
 app.use('/uploads', express.static('uploads'));

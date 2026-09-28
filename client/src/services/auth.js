@@ -32,11 +32,15 @@ const authAPI = {
   },
 
   /**
-   * Login user
+   * Login user — automatically saves token + user to localStorage
    * @param {Object} data - { email, password }
    */
   login: async (data) => {
     const res = await api.post('/auth/login', data);
+    const { token, user } = res.data.data || {};
+    if (token && user) {
+      authAPI.saveSession(token, user);
+    }
     return res.data;
   },
 
@@ -69,6 +73,30 @@ const authAPI = {
   saveSession: (token, user) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
+  },
+
+  /**
+   * ✅ Refresh user data from the server (reads fresh role from DB).
+   * Useful when role is changed directly in the database.
+   */
+  refreshUser: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      const res = await api.get('/users/me');
+      const user = res.data.data || res.data.user || res.data;
+      if (user && user.role) {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      return user;
+    } catch (err) {
+      // Token invalid or expired — clear session
+      if (err.response?.status === 401) {
+        authAPI.logout();
+      }
+      return null;
+    }
   },
 };
 

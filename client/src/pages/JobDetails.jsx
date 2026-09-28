@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import jobsAPI from '../services/jobs';
+import applicationsAPI from '../services/applications';
+import authAPI from '../services/auth';
 
 const JobDetails = () => {
   const { id } = useParams();
@@ -10,6 +12,17 @@ const JobDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(false);
+
+  // Apply modal state
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [coverLetter, setCoverLetter] = useState('');
+  const [resumeUrl, setResumeUrl] = useState('');
+  const [applying, setApplying] = useState(false);
+  const [applyMsg, setApplyMsg] = useState('');
+  const [applyErr, setApplyErr] = useState('');
+
+  const user = authAPI.getCurrentUser();
+  const isLoggedIn = authAPI.isAuthenticated();
 
   const handleDelete = async () => {
     const confirmed = window.confirm(
@@ -44,8 +57,47 @@ const JobDetails = () => {
     if (id) fetchJob();
   }, [id]);
 
-  const handleApply = () => {
-    alert('Apply feature will be added in the Application System module.');
+  const handleApplyClick = () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    if (user?.role !== 'jobseeker') {
+      alert('Only job seekers can apply for jobs.');
+      return;
+    }
+    setShowApplyModal(true);
+    setApplyMsg('');
+    setApplyErr('');
+    // prefill resume if in user profile
+    setResumeUrl(user?.resumeUrl || '');
+  };
+
+  const handleApplySubmit = async (e) => {
+    e.preventDefault();
+    setApplying(true);
+    setApplyMsg('');
+    setApplyErr('');
+
+    try {
+      await applicationsAPI.create({
+        jobId: id,
+        coverLetter,
+        resumeUrl,
+      });
+      setApplyMsg('Application submitted successfully!');
+      setCoverLetter('');
+      setTimeout(() => {
+        setShowApplyModal(false);
+        setApplyMsg('');
+      }, 1800);
+    } catch (err) {
+      setApplyErr(
+        err.response?.data?.message || 'Failed to submit application'
+      );
+    } finally {
+      setApplying(false);
+    }
   };
 
   const formatDate = (dateStr) => {
@@ -110,14 +162,7 @@ const JobDetails = () => {
             onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to Jobs
@@ -125,34 +170,16 @@ const JobDetails = () => {
         </div>
       </div>
 
-      {/* ─── Main content ─── */}
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* ─── LEFT COLUMN — Job Details ─── */}
+          {/* ─── LEFT — Job details ─── */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Header card */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
               <div className="flex items-center gap-3 mb-4">
-                <span
-                  className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${
-                    job.type === 'internship'
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}
-                >
+                <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${job.type === 'internship' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
                   {job.type}
                 </span>
-                <span
-                  className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${
-                    job.status === 'approved'
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : job.status === 'pending'
-                      ? 'bg-amber-100 text-amber-700'
-                      : job.status === 'rejected'
-                      ? 'bg-rose-100 text-rose-700'
-                      : 'bg-slate-100 text-slate-700'
-                  }`}
-                >
+                <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${job.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : job.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
                   {job.status}
                 </span>
               </div>
@@ -178,18 +205,14 @@ const JobDetails = () => {
               </div>
             </div>
 
-            {/* Description */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <span className="w-1 h-6 bg-gradient-to-b from-indigo-600 to-blue-500 rounded-full"></span>
                 Job Description
               </h2>
-              <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
-                {job.description}
-              </p>
+              <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{job.description}</p>
             </div>
 
-            {/* Requirements */}
             {job.requirements && job.requirements.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -198,10 +221,7 @@ const JobDetails = () => {
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {job.requirements.map((req, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-sm font-medium px-3 py-1.5 rounded-full border border-indigo-100"
-                    >
+                    <span key={i} className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-sm font-medium px-3 py-1.5 rounded-full border border-indigo-100">
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
@@ -212,77 +232,57 @@ const JobDetails = () => {
               </div>
             )}
 
-            {/* About employer (placeholder) */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-              <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-gradient-to-b from-indigo-600 to-blue-500 rounded-full"></span>
-                About the Employer
-              </h2>
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white font-bold text-xl shadow-sm">
-                  E
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-800">Verified Employer</p>
-                  <p className="text-sm text-slate-500">
-                    Company details will appear once User profiles are added.
-                  </p>
+            {job.employerId && (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <span className="w-1 h-6 bg-gradient-to-b from-indigo-600 to-blue-500 rounded-full"></span>
+                  About the Employer
+                </h2>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white font-bold text-xl shadow-sm">
+                    {(job.employerId.name || 'E').charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800">{job.employerId.name || 'Employer'}</p>
+                    <p className="text-sm text-slate-500">{job.employerId.email || ''}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* ─── RIGHT COLUMN — Sidebar ─── */}
+          {/* ─── RIGHT — Sidebar ─── */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sticky top-24">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">
-                Job Overview
-              </h3>
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Job Overview</h3>
 
-              {/* ─── Edit / Delete buttons ─── */}
-              <div className="grid grid-cols-2 gap-2 mb-5">
+              {/* Admin/Employer actions */}
+              {(user?.role === 'admin' || (user?.role === 'employer' && job.employerId?._id === user?.id)) && (
+                <div className="grid grid-cols-2 gap-2 mb-5">
+                  <Link to={`/jobs/${job._id}/edit`} className="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 font-semibold py-2 px-3 rounded-lg transition-colors text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit
+                  </Link>
+                  <button onClick={handleDelete} disabled={deleting} className="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:border-red-300 hover:bg-red-50 text-slate-700 hover:text-red-700 font-semibold py-2 px-3 rounded-lg transition-colors text-sm disabled:opacity-60">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    {deleting ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              )}
+
+              {/* Employer link to manage applicants */}
+              {user?.role === 'employer' && job.employerId?._id === user?.id && (
                 <Link
-                  to={`/jobs/${job._id}/edit`}
-                  className="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
+                  to={`/jobs/${job._id}/applicants`}
+                  className="w-full block text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-lg transition-colors text-sm mb-5"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                  Edit
+                  View Applicants →
                 </Link>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:border-red-300 hover:bg-red-50 text-slate-700 hover:text-red-700 font-semibold py-2 px-3 rounded-lg transition-colors text-sm disabled:opacity-60"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                  {deleting ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
+              )}
 
               <div className="space-y-4 mb-6">
                 <div className="flex items-start gap-3">
@@ -305,9 +305,7 @@ const JobDetails = () => {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-wider">Category</p>
-                    <p className="font-semibold text-slate-800">
-                      {job.category?.name || 'Uncategorized'}
-                    </p>
+                    <p className="font-semibold text-slate-800">{job.category?.name || 'Uncategorized'}</p>
                   </div>
                 </div>
 
@@ -324,23 +322,99 @@ const JobDetails = () => {
                 </div>
               </div>
 
-              <button
-                onClick={handleApply}
-                className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-                Apply Now
-              </button>
-
-              <p className="text-xs text-slate-400 text-center mt-3">
-                Application system coming soon
-              </p>
+              {/* Apply button — only for jobseekers (or guests who'll be redirected to login) */}
+              {(!user || user.role === 'jobseeker') && (
+                <button
+                  onClick={handleApplyClick}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Apply Now
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* ─── Apply Modal ─── */}
+      {showApplyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">Apply for this Job</h2>
+              <button
+                onClick={() => setShowApplyModal(false)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleApplySubmit} className="p-6 space-y-4">
+              {applyErr && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {applyErr}
+                </div>
+              )}
+              {applyMsg && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm">
+                  {applyMsg}
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="resumeUrl" className="block text-sm font-semibold text-slate-700 mb-2">
+                  Resume URL (optional)
+                </label>
+                <input
+                  id="resumeUrl"
+                  type="text"
+                  value={resumeUrl}
+                  onChange={(e) => setResumeUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="coverLetter" className="block text-sm font-semibold text-slate-700 mb-2">
+                  Cover Letter
+                </label>
+                <textarea
+                  id="coverLetter"
+                  rows="5"
+                  value={coverLetter}
+                  onChange={(e) => setCoverLetter(e.target.value)}
+                  placeholder="Why are you a good fit for this role?"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowApplyModal(false)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={applying}
+                  className="flex-1 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-60"
+                >
+                  {applying ? 'Submitting...' : 'Submit Application'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

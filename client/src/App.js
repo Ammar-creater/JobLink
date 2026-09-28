@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useNavigate } from 'react-router-dom';
 import JobListing from './pages/JobListing';
 import JobDetails from './pages/JobDetails';
@@ -6,7 +6,10 @@ import PostJobForm from './pages/PostJobForm';
 import EditJobForm from './pages/EditJobForm';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import MyApplications from './pages/MyApplications';
+import ManageApplicants from './pages/ManageApplicants';
 import AdminDashboard from './pages/AdminDashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 import authAPI from './services/auth';
 
 function App() {
@@ -25,9 +28,20 @@ function App() {
             <Route path="/jobs/new" element={<PostJobForm />} />
             <Route path="/jobs/:id" element={<JobDetails />} />
             <Route path="/jobs/:id/edit" element={<EditJobForm />} />
+            <Route path="/jobs/:jobId/applicants" element={<ManageApplicants />} />
+            <Route path="/applications/my" element={<MyApplications />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+
+            {/* ✅ Admin-only route guarded */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
 
@@ -42,9 +56,29 @@ function App() {
 ───────────────────────────── */
 function Navbar() {
   const navigate = useNavigate();
-  const user = authAPI.getCurrentUser();
-  const isLoggedIn = authAPI.isAuthenticated();
+  const [user, setUser] = useState(authAPI.getCurrentUser());
+  const [isLoggedIn, setIsLoggedIn] = useState(authAPI.isAuthenticated());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // ✅ Refresh user data from server on mount (picks up DB role changes)
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (authAPI.isAuthenticated()) {
+        const fresh = await authAPI.refreshUser();
+        if (active && fresh) {
+          setUser(fresh);
+          setIsLoggedIn(true);
+        }
+      } else {
+        setUser(null);
+        setIsLoggedIn(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleLogout = () => {
     authAPI.logout();
@@ -114,6 +148,23 @@ function Navbar() {
             </NavLink>
           )}
 
+          {/* ✅ Jobseeker: My Applications */}
+          {isLoggedIn && user && user.role === 'jobseeker' && (
+            <NavLink
+              to="/applications/my"
+              className={({ isActive }) =>
+                `px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'text-indigo-600 bg-indigo-50'
+                    : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50'
+                }`
+              }
+            >
+              My Applications
+            </NavLink>
+          )}
+
+          {/* ✅ Admin: Admin Dashboard */}
           {isLoggedIn && user && user.role === 'admin' && (
             <NavLink
               to="/admin"
@@ -237,6 +288,24 @@ function Navbar() {
               </NavLink>
             )}
 
+            {/* ✅ Jobseeker: My Applications */}
+            {isLoggedIn && user && user.role === 'jobseeker' && (
+              <NavLink
+                to="/applications/my"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+                    isActive
+                      ? 'text-indigo-600 bg-indigo-50'
+                      : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50'
+                  }`
+                }
+              >
+                My Applications
+              </NavLink>
+            )}
+
+            {/* ✅ Admin: Admin Dashboard */}
             {isLoggedIn && user && user.role === 'admin' && (
               <NavLink
                 to="/admin"
