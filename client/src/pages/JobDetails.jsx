@@ -256,8 +256,8 @@ const JobDetails = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sticky top-24">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Job Overview</h3>
 
-              {/* Admin/Employer actions */}
-              {(user?.role === 'admin' || (user?.role === 'employer' && job.employerId?._id === user?.id)) && (
+              {/* ✅ FIXED: Admin/Employer actions */}
+              {(user?.role === 'admin' || (user?.role === 'employer' && String(job.employerId?._id) === String(user?._id))) && (
                 <div className="grid grid-cols-2 gap-2 mb-5">
                   <Link to={`/jobs/${job._id}/edit`} className="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 font-semibold py-2 px-3 rounded-lg transition-colors text-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -274,8 +274,8 @@ const JobDetails = () => {
                 </div>
               )}
 
-              {/* Employer link to manage applicants */}
-              {user?.role === 'employer' && job.employerId?._id === user?.id && (
+              {/* ✅ FIXED: Employer link to manage applicants */}
+              {user?.role === 'employer' && String(job.employerId?._id) === String(user?._id) && (
                 <Link
                   to={`/jobs/${job._id}/applicants`}
                   className="w-full block text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-lg transition-colors text-sm mb-5"
